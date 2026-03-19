@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Cheat Sheet — PostgreSQL vs MySQL</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0f1117;
+    --surface:  #181c27;
+    --surface2: #1e2333;
+    --border:   #2a2f42;
+    --text:     #e2e6f3;
+    --muted:    #7a82a0;
+    --pg-hue:   #4a9eff;
+    --pg-dim:   #1a3a5c;
+    --my-hue:   #f59e0b;
+    --my-dim:   #3d2b00;
+    --green:    #34d399;
+    --red:      #f87171;
+    --purple:   #a78bfa;
+    --mono:     'JetBrains Mono', monospace;
+    --sans:     'DM Sans', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #0d1424 0%, #141928 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 36px 40px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .title-group h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: #fff;
+  }
+  .title-group p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .legend {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .badge-pg { background: var(--pg-dim); color: var(--pg-hue); border: 1px solid rgba(74,158,255,0.3); }
+  .badge-my { background: var(--my-dim); color: var(--my-hue); border: 1px solid rgba(245,158,11,0.3); }
+  .badge-same { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+
+  /* ── Search ── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 113px;
+    z-index: 99;
+  }
+  .search-bar input {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px 8px 36px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: var(--sans);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: var(--pg-hue); }
+  .search-wrap { position: relative; display: inline-flex; }
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 14px;
+  }
+  .search-hint { font-size: 12px; color: var(--muted); }
+
+  /* ── Main layout ── */
+  main {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .section-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.2px;
+  }
+  .section-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── Table ── */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead {
+    background: var(--surface);
+  }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  thead th:first-child { width: 22%; color: var(--text); }
+  thead th:nth-child(2) { color: var(--pg-hue); }
+  thead th:nth-child(3) { color: var(--my-hue); }
+  thead th:last-child { width: 18%; }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(42,47,66,0.6);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody tr.hidden { display: none; }
+
+  td {
+    padding: 13px 16px;
+    vertical-align: top;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  td:first-child {
+    font-weight: 500;
+    color: #d0d6eb;
+    font-size: 13px;
+  }
+
+  /* ── Code blocks ── */
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    display: block;
+    background: var(--bg);
+    padding: 8px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: #c9d1f0;
+  }
+  .kw  { color: #7dd3fc; } /* keyword */
+  .fn  { color: #a78bfa; } /* function */
+  .str { color: #86efac; } /* string */
+  .cm  { color: #4a5568; } /* comment */
+  .num { color: #fca5a5; } /* number */
+
+  /* ── Diff cells ── */
+  .same-cell code { border-color: rgba(52,211,153,0.2); background: rgba(52,211,153,0.04); }
+  .diff-pg code   { border-color: rgba(74,158,255,0.25); background: rgba(74,158,255,0.05); }
+  .diff-my code   { border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.05); }
+
+  /* ── Notes cell ── */
+  .note {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .note strong { color: var(--text); font-weight: 500; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-bottom: 2px;
+  }
+  .pill-same   { background: rgba(52,211,153,0.12); color: var(--green); }
+  .pill-diff   { background: rgba(248,113,113,0.12); color: var(--red); }
+  .pill-pg     { background: rgba(74,158,255,0.12);  color: var(--pg-hue); }
+  .pill-my     { background: rgba(245,158,11,0.12);  color: var(--my-hue); }
+
+  /* ── No results ── */
+  #no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+    display: none;
+  }
+
+  /* ── Scroll to top ── */
+  #top-btn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.2s;
+    pointer-events: none;
+  }
+  #top-btn.visible { opacity: 1; pointer-events: all; }
+  #top-btn:hover { background: var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="title-group">
+      <h1>SQL Cheat Sheet — PostgreSQL vs MySQL</h1>
+      <p>Side-by-side syntax reference for both databases. Identical syntax is shown once; differences are called out clearly.</p>
+    </div>
+    <div class="legend">
+      <span class="badge badge-pg">PostgreSQL</span>
+      <span class="badge badge-my">MySQL</span>
+      <span class="badge badge-same">✓ Identical</span>
+    </div>
+  </div>
+</header>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="search" placeholder="Search commands... (e.g. JOIN, GROUP BY, CASE)" autocomplete="off">
+  </div>
+  <span class="search-hint" id="result-count"></span>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 1. DATA TYPES -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="data types">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(167,139,250,0.15)">🔢</div>
+    <div>
+      <div class="section-title">Data Types</div>
+      <div class="section-desc">Column type definitions when creating tables</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Auto-increment ID</td>
+          <td class="diff-pg"><code><span class="kw">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span></code></td>
+          <td class="diff-my"><code><span class="kw">BIGINT</span> <span class="kw">AUTO_INCREMENT PRIMARY KEY</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG uses <strong>BIGSERIAL</strong> as shorthand. MySQL requires <strong>AUTO_INCREMENT</strong> explicitly.</td>
+        </tr>
+        <tr>
+          <td>Text (variable)</td>
+          <td class="same-cell"><code><span class="kw">VARCHAR</span>(<span class="num">255</span>)</code></td>
+          <td class="same-cell"><code><span class="kw">VARCHAR</span>(<span class="num">255</span>)</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Max 255 chars. Use for names, emails, labels.</td>
+        </tr>
+        <tr>
+          <td>Fixed-length text</td>
+          <td class="same-cell"><code><span class="kw">CHAR</span>(<span class="num">2</span>)</code></td>
+          <td class="same-cell"><code><span class="kw">CHAR</span>(<span class="num">2</span>)</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Good for state abbreviations (always exactly 2 chars).</td>
+        </tr>
+        <tr>
+          <td>Whole number</td>
+          <td class="same-cell"><code><span class="kw">INTEGER</span> / <span class="kw">BIGINT</span></code></td>
+          <td class="same-cell"><code><span class="kw">INTEGER</span> / <span class="kw">BIGINT</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Use <strong>BIGINT</strong> for IDs (future-proof). <strong>INTEGER</strong> for known-small values like month numbers.</td>
+        </tr>
+        <tr>
+          <td>Decimal number</td>
+          <td class="diff-pg"><code><span class="kw">NUMERIC</span>(<span class="num">14</span>,<span class="num">2</span>)</code></td>
+          <td class="diff-my"><code><span class="kw">DECIMAL</span>(<span class="num">14</span>,<span class="num">2</span>)</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> Both work similarly. 14 = total digits, 2 = digits after decimal. Use for money.</td>
+        </tr>
+        <tr>
+          <td>Date only</td>
+          <td class="same-cell"><code><span class="kw">DATE</span></code></td>
+          <td class="same-cell"><code><span class="kw">DATE</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Format: <strong>YYYY-MM-DD</strong></td>
+        </tr>
+        <tr>
+          <td>Date + Time</td>
+          <td class="diff-pg"><code><span class="kw">TIMESTAMP</span></code></td>
+          <td class="diff-my"><code><span class="kw">DATETIME</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG also has <strong>TIMESTAMPTZ</strong> (with time zone). MySQL uses <strong>DATETIME</strong>.</td>
+        </tr>
+        <tr>
+          <td>True / False</td>
+          <td class="diff-pg"><code><span class="kw">BOOLEAN</span></code></td>
+          <td class="diff-my"><code><span class="kw">TINYINT</span>(<span class="num">1</span>)</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG has a native BOOLEAN. MySQL uses 0/1 stored as TINYINT.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 2. TABLE OPERATIONS (DDL) -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="table create drop alter ddl">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(74,158,255,0.12)">🏗️</div>
+    <div>
+      <div class="section-title">Table Operations (DDL)</div>
+      <div class="section-desc">Creating, modifying and removing tables</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Create a table</td>
+          <td class="same-cell"><code><span class="kw">CREATE TABLE</span> employees (
+  id   <span class="kw">BIGINT PRIMARY KEY</span>,
+  name <span class="kw">VARCHAR</span>(<span class="num">255</span>)
+);</code></td>
+          <td class="same-cell"><code><span class="kw">CREATE TABLE</span> employees (
+  id   <span class="kw">BIGINT PRIMARY KEY</span>,
+  name <span class="kw">VARCHAR</span>(<span class="num">255</span>)
+);</code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>Drop table (safe)</td>
+          <td class="same-cell"><code><span class="kw">DROP TABLE IF EXISTS</span> employees;</code></td>
+          <td class="same-cell"><code><span class="kw">DROP TABLE IF EXISTS</span> employees;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> <strong>IF EXISTS</strong> prevents an error if the table doesn't exist.</td>
+        </tr>
+        <tr>
+          <td>Add a column</td>
+          <td class="same-cell"><code><span class="kw">ALTER TABLE</span> employees
+<span class="kw">ADD</span> age <span class="kw">INTEGER</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">ALTER TABLE</span> employees
+<span class="kw">ADD</span> age <span class="kw">INTEGER</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>Rename a column</td>
+          <td class="diff-pg"><code><span class="kw">ALTER TABLE</span> employees
+<span class="kw">RENAME</span> age <span class="kw">TO</span> years_old;</code></td>
+          <td class="diff-my"><code><span class="kw">ALTER TABLE</span> employees
+<span class="kw">RENAME COLUMN</span> age <span class="kw">TO</span> years_old;</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> MySQL 8.0+ supports <strong>RENAME COLUMN</strong>. Older versions use <strong>CHANGE</strong>.</td>
+        </tr>
+        <tr>
+          <td>Temp table</td>
+          <td class="diff-pg"><code><span class="kw">CREATE TEMP TABLE</span> temp_data
+<span class="kw">AS SELECT</span> * <span class="kw">FROM</span> sales;</code></td>
+          <td class="diff-my"><code><span class="kw">CREATE TEMPORARY TABLE</span> temp_data
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> sales;</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG: <strong>TEMP</strong>. MySQL: <strong>TEMPORARY</strong>. Both cleared on disconnect.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 3. INSERT / UPDATE / DELETE (DML) -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="insert update delete dml data manipulation">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(52,211,153,0.12)">✏️</div>
+    <div>
+      <div class="section-title">Insert / Update / Delete (DML)</div>
+      <div class="section-desc">Adding, modifying and removing rows</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Insert a row</td>
+          <td class="same-cell"><code><span class="kw">INSERT INTO</span> employees
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="str">'Bob'</span>, <span class="num">40</span>);</code></td>
+          <td class="same-cell"><code><span class="kw">INSERT INTO</span> employees
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="str">'Bob'</span>, <span class="num">40</span>);</code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>Update a row</td>
+          <td class="same-cell"><code><span class="kw">UPDATE</span> employees
+<span class="kw">SET</span> age = <span class="num">41</span>
+<span class="kw">WHERE</span> name = <span class="str">'Bob'</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">UPDATE</span> employees
+<span class="kw">SET</span> age = <span class="num">41</span>
+<span class="kw">WHERE</span> name = <span class="str">'Bob'</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> ⚠️ Always include WHERE — no WHERE = every row gets updated.</td>
+        </tr>
+        <tr>
+          <td>Delete a row</td>
+          <td class="same-cell"><code><span class="kw">DELETE FROM</span> employees
+<span class="kw">WHERE</span> name = <span class="str">'Bob'</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">DELETE FROM</span> employees
+<span class="kw">WHERE</span> name = <span class="str">'Bob'</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> ⚠️ Same warning — no WHERE = all rows deleted.</td>
+        </tr>
+        <tr>
+          <td>Insert from SELECT</td>
+          <td class="same-cell"><code><span class="kw">INSERT INTO</span> archive
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+<span class="kw">WHERE</span> age &gt; <span class="num">60</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">INSERT INTO</span> archive
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+<span class="kw">WHERE</span> age &gt; <span class="num">60</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Copy rows from one table into another.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 4. SELECT & FILTERING -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="select where filter and or not like in between distinct null">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(74,158,255,0.12)">🔍</div>
+    <div>
+      <div class="section-title">SELECT & Filtering</div>
+      <div class="section-desc">Querying and filtering rows</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Select all columns</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> employees;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> employees;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>Select with alias</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> e.name, e.age
+<span class="kw">FROM</span> employees e;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> e.name, e.age
+<span class="kw">FROM</span> employees e;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> <strong>e</strong> is a short alias for the table. Best practice when joining tables.</td>
+        </tr>
+        <tr>
+          <td>WHERE + AND / OR</td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> age &gt; <span class="num">30</span>
+  <span class="kw">AND</span> dept = <span class="str">'Sales'</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> age &gt; <span class="num">30</span>
+  <span class="kw">AND</span> dept = <span class="str">'Sales'</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>BETWEEN</td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> age <span class="kw">BETWEEN</span> <span class="num">30</span> <span class="kw">AND</span> <span class="num">50</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> age <span class="kw">BETWEEN</span> <span class="num">30</span> <span class="kw">AND</span> <span class="num">50</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Both endpoints are inclusive.</td>
+        </tr>
+        <tr>
+          <td>IN</td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> dept <span class="kw">IN</span> (<span class="str">'Sales'</span>, <span class="str">'HR'</span>);</code></td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> dept <span class="kw">IN</span> (<span class="str">'Sales'</span>, <span class="str">'HR'</span>);</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Cleaner than multiple ORs. Keep list under ~20 values.</td>
+        </tr>
+        <tr>
+          <td>LIKE (pattern)</td>
+          <td class="diff-pg"><code><span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'A%'</span>;   <span class="cm">-- case-sensitive</span>
+<span class="kw">WHERE</span> name <span class="kw">ILIKE</span> <span class="str">'a%'</span>; <span class="cm">-- case-insensitive</span></code></td>
+          <td class="diff-my"><code><span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'A%'</span>;  <span class="cm">-- case-insensitive by default</span>
+<span class="cm">-- No ILIKE in MySQL</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG LIKE is case-sensitive; use <strong>ILIKE</strong> for case-insensitive. MySQL LIKE is case-insensitive by default. <strong>%</strong> = any chars, <strong>_</strong> = one char.</td>
+        </tr>
+        <tr>
+          <td>NULL check</td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> address <span class="kw">IS NULL</span>;
+<span class="kw">WHERE</span> address <span class="kw">IS NOT NULL</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">WHERE</span> address <span class="kw">IS NULL</span>;
+<span class="kw">WHERE</span> address <span class="kw">IS NOT NULL</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Never use <code>= NULL</code> — it doesn't work in either database.</td>
+        </tr>
+        <tr>
+          <td>DISTINCT</td>
+          <td class="same-cell"><code><span class="kw">SELECT DISTINCT</span> dept
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT DISTINCT</span> dept
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Removes duplicate values from the result.</td>
+        </tr>
+        <tr>
+          <td>LIMIT rows</td>
+          <td class="diff-pg"><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+<span class="kw">LIMIT</span> <span class="num">10</span>;</code></td>
+          <td class="diff-my"><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+<span class="kw">LIMIT</span> <span class="num">10</span>;
+<span class="cm">-- or: LIMIT 2, 1 (skip 2, return 1)</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> MySQL supports <strong>LIMIT offset, count</strong> syntax. PG uses <strong>LIMIT x OFFSET y</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 5. AGGREGATE + GROUP BY + HAVING -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="aggregate count sum avg min max group by having order by">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(251,191,36,0.12)">📊</div>
+    <div>
+      <div class="section-title">Aggregate Functions, GROUP BY & HAVING</div>
+      <div class="section-desc">Summarising and grouping data</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Count / Sum / Avg</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span>
+  <span class="fn">COUNT</span>(*),
+  <span class="fn">SUM</span>(salary),
+  <span class="fn">AVG</span>(salary),
+  <span class="fn">MIN</span>(salary),
+  <span class="fn">MAX</span>(salary)
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span>
+  <span class="fn">COUNT</span>(*),
+  <span class="fn">SUM</span>(salary),
+  <span class="fn">AVG</span>(salary),
+  <span class="fn">MIN</span>(salary),
+  <span class="fn">MAX</span>(salary)
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> <strong>COUNT(*)</strong> counts all rows. <strong>COUNT(col)</strong> skips NULLs.</td>
+        </tr>
+        <tr>
+          <td>GROUP BY</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> dept, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total
+<span class="kw">FROM</span> employees
+<span class="kw">GROUP BY</span> dept
+<span class="kw">ORDER BY</span> total <span class="kw">DESC</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> dept, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total
+<span class="kw">FROM</span> employees
+<span class="kw">GROUP BY</span> dept
+<span class="kw">ORDER BY</span> total <span class="kw">DESC</span>;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Every non-aggregate column in SELECT must also be in GROUP BY.</td>
+        </tr>
+        <tr>
+          <td>HAVING</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> dept, <span class="fn">AVG</span>(salary) <span class="kw">AS</span> avg_sal
+<span class="kw">FROM</span> employees
+<span class="kw">GROUP BY</span> dept
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(salary) &gt; <span class="num">60000</span>;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> dept, <span class="fn">AVG</span>(salary) <span class="kw">AS</span> avg_sal
+<span class="kw">FROM</span> employees
+<span class="kw">GROUP BY</span> dept
+<span class="kw">HAVING</span> avg_sal &gt; <span class="num">60000</span>;</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> MySQL allows using the column <strong>alias</strong> in HAVING. PG requires the full expression again.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 6. JOINS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="join inner left right outer full self cross">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(167,139,250,0.12)">🔗</div>
+    <div>
+      <div class="section-title">JOINs</div>
+      <div class="section-desc">Combining data from multiple tables</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>INNER JOIN</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> customers c
+<span class="kw">JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> customers c
+<span class="kw">INNER JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Returns only rows with a match in BOTH tables. <strong>JOIN</strong> and <strong>INNER JOIN</strong> are identical.</td>
+        </tr>
+        <tr>
+          <td>LEFT JOIN</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> customers c
+<span class="kw">LEFT JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> customers c
+<span class="kw">LEFT JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> All rows from left table. NULL where no match on right. Most commonly used JOIN.</td>
+        </tr>
+        <tr>
+          <td>RIGHT JOIN</td>
+          <td class="same-cell"><code><span class="kw">... RIGHT JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="same-cell"><code><span class="kw">... RIGHT JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> All rows from right table. Rarely used — swap table order and use LEFT JOIN instead.</td>
+        </tr>
+        <tr>
+          <td>FULL OUTER JOIN</td>
+          <td class="diff-pg"><code><span class="kw">... FULL OUTER JOIN</span> orders o
+  <span class="kw">ON</span> c.id = o.customer_id;</code></td>
+          <td class="diff-my"><code><span class="cm">-- Not natively supported.</span>
+<span class="cm">-- Emulate with UNION:</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> a <span class="kw">LEFT JOIN</span> b <span class="kw">ON</span> ...
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> a <span class="kw">RIGHT JOIN</span> b <span class="kw">ON</span> ...;</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG supports FULL OUTER JOIN natively. MySQL does not — emulate with a UNION of LEFT + RIGHT joins.</td>
+        </tr>
+        <tr>
+          <td>Self JOIN</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> e.name, mgr.name <span class="kw">AS</span> manager
+<span class="kw">FROM</span> employees e
+<span class="kw">JOIN</span> employees mgr
+  <span class="kw">ON</span> e.manager_id = mgr.id;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> e.name, mgr.name <span class="kw">AS</span> manager
+<span class="kw">FROM</span> employees e
+<span class="kw">JOIN</span> employees mgr
+  <span class="kw">ON</span> e.manager_id = mgr.id;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Table joined to itself using two different aliases. Common for manager/employee relationships.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 7. CASE / UNION / SUBQUERIES -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="case when then else union subquery">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(248,113,113,0.12)">⚙️</div>
+    <div>
+      <div class="section-title">CASE, UNION & Subqueries</div>
+      <div class="section-desc">Conditional logic, combining results, nested queries</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CASE statement</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> name,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> salary &lt; <span class="num">50000</span>  <span class="kw">THEN</span> <span class="str">'low'</span>
+    <span class="kw">WHEN</span> salary &lt; <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'mid'</span>
+    <span class="kw">ELSE</span> <span class="str">'high'</span>
+  <span class="kw">END</span> <span class="kw">AS</span> pay_band
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> name,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> salary &lt; <span class="num">50000</span>  <span class="kw">THEN</span> <span class="str">'low'</span>
+    <span class="kw">WHEN</span> salary &lt; <span class="num">100000</span> <span class="kw">THEN</span> <span class="str">'mid'</span>
+    <span class="kw">ELSE</span> <span class="str">'high'</span>
+  <span class="kw">END</span> <span class="kw">AS</span> pay_band
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> SQL's if/else. Evaluates top to bottom — first TRUE condition wins.</td>
+        </tr>
+        <tr>
+          <td>UNION / UNION ALL</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> name <span class="kw">FROM</span> employees
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> contractors;
+<span class="cm">-- UNION ALL to keep duplicates</span></code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> name <span class="kw">FROM</span> employees
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> contractors;
+<span class="cm">-- UNION ALL to keep duplicates</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Stacks two result sets. Both queries must have same number of columns.</td>
+        </tr>
+        <tr>
+          <td>Subquery in WHERE</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> employees
+<span class="kw">WHERE</span> dept_id <span class="kw">IN</span> (
+  <span class="kw">SELECT</span> id <span class="kw">FROM</span> departments
+  <span class="kw">WHERE</span> name = <span class="str">'Sales'</span>
+);</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> employees
+<span class="kw">WHERE</span> dept_id <span class="kw">IN</span> (
+  <span class="kw">SELECT</span> id <span class="kw">FROM</span> departments
+  <span class="kw">WHERE</span> name = <span class="str">'Sales'</span>
+);</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Inner query runs first. Its result is used by the outer query.</td>
+        </tr>
+        <tr>
+          <td>CTE (WITH clause)</td>
+          <td class="same-cell"><code><span class="kw">WITH</span> high_earners <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+  <span class="kw">WHERE</span> salary &gt; <span class="num">80000</span>
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> high_earners;</code></td>
+          <td class="same-cell"><code><span class="kw">WITH</span> high_earners <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+  <span class="kw">WHERE</span> salary &gt; <span class="num">80000</span>
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> high_earners;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Cleaner alternative to nested subqueries. MySQL support added in v8.0.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 8. WINDOW FUNCTIONS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="window function over partition row_number rank dense_rank ntile lag lead running total">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(52,211,153,0.12)">🪟</div>
+    <div>
+      <div class="section-title">Window Functions</div>
+      <div class="section-desc">Calculations across related rows without collapsing them</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Aggregate OVER partition</td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> name, dept, salary,
+  <span class="fn">AVG</span>(salary) <span class="kw">OVER</span>
+    (<span class="kw">PARTITION BY</span> dept)
+  <span class="kw">AS</span> dept_avg
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="same-cell"><code><span class="kw">SELECT</span> name, dept, salary,
+  <span class="fn">AVG</span>(salary) <span class="kw">OVER</span>
+    (<span class="kw">PARTITION BY</span> dept)
+  <span class="kw">AS</span> dept_avg
+<span class="kw">FROM</span> employees;</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Adds the dept average to every row — unlike GROUP BY which collapses to one row per dept.</td>
+        </tr>
+        <tr>
+          <td>ROW_NUMBER</td>
+          <td class="same-cell"><code><span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>
+  (<span class="kw">PARTITION BY</span> dept
+   <span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>)
+<span class="kw">AS</span> row_num</code></td>
+          <td class="same-cell"><code><span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>
+  (<span class="kw">PARTITION BY</span> dept
+   <span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>)
+<span class="kw">AS</span> row_num</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Unique sequential number per group. No ties — always 1, 2, 3, 4...</td>
+        </tr>
+        <tr>
+          <td>RANK vs DENSE_RANK</td>
+          <td class="same-cell"><code><span class="fn">RANK</span>()       <span class="kw">OVER</span>(...) <span class="cm">-- 1,1,3,4</span>
+<span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span>(...) <span class="cm">-- 1,1,2,3</span></code></td>
+          <td class="same-cell"><code><span class="fn">RANK</span>()       <span class="kw">OVER</span>(...) <span class="cm">-- 1,1,3,4</span>
+<span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span>(...) <span class="cm">-- 1,1,2,3</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> RANK skips numbers after a tie. DENSE_RANK never skips.</td>
+        </tr>
+        <tr>
+          <td>Running total</td>
+          <td class="same-cell"><code><span class="fn">SUM</span>(sales) <span class="kw">OVER</span>
+  (<span class="kw">ORDER BY</span> sale_date)
+<span class="kw">AS</span> running_total</code></td>
+          <td class="same-cell"><code><span class="fn">SUM</span>(sales) <span class="kw">OVER</span>
+  (<span class="kw">ORDER BY</span> sale_date)
+<span class="kw">AS</span> running_total</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Cumulative sum up to the current row. Add ORDER BY inside OVER() to make it run.</td>
+        </tr>
+        <tr>
+          <td>LAG / LEAD</td>
+          <td class="same-cell"><code><span class="fn">LAG</span>(salary)  <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> id)
+<span class="cm">-- prev row value (NULL at top)</span>
+<span class="fn">LEAD</span>(salary) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> id)
+<span class="cm">-- next row value (NULL at bottom)</span></code></td>
+          <td class="same-cell"><code><span class="fn">LAG</span>(salary)  <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> id)
+<span class="cm">-- prev row value (NULL at top)</span>
+<span class="fn">LEAD</span>(salary) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> id)
+<span class="cm">-- next row value (NULL at bottom)</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>NTILE (buckets)</td>
+          <td class="same-cell"><code><span class="fn">NTILE</span>(<span class="num">4</span>) <span class="kw">OVER</span>
+  (<span class="kw">ORDER BY</span> salary) <span class="kw">AS</span> quartile
+<span class="fn">NTILE</span>(<span class="num">100</span>) <span class="kw">OVER</span>
+  (<span class="kw">ORDER BY</span> salary) <span class="kw">AS</span> percentile</code></td>
+          <td class="same-cell"><code><span class="fn">NTILE</span>(<span class="num">4</span>) <span class="kw">OVER</span>
+  (<span class="kw">ORDER BY</span> salary) <span class="kw">AS</span> quartile
+<span class="fn">NTILE</span>(<span class="num">100</span>) <span class="kw">OVER</span>
+  (<span class="kw">ORDER BY</span> salary) <span class="kw">AS</span> percentile</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Divides rows into N equal buckets. NTILE(4) = quartiles.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 9. STRING FUNCTIONS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="string upper lower trim length concat coalesce replace substring">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(74,158,255,0.12)">🔤</div>
+    <div>
+      <div class="section-title">String Functions</div>
+      <div class="section-desc">Cleaning, formatting and extracting text</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Upper / Lower</td>
+          <td class="same-cell"><code><span class="fn">UPPER</span>(name), <span class="fn">LOWER</span>(name)</code></td>
+          <td class="same-cell"><code><span class="fn">UPPER</span>(name), <span class="fn">LOWER</span>(name)</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Standardise text before comparing. Use <code>lower(x) = 'value'</code>.</td>
+        </tr>
+        <tr>
+          <td>Trim whitespace</td>
+          <td class="same-cell"><code><span class="fn">TRIM</span>(name)   <span class="cm">-- both sides</span>
+<span class="fn">LTRIM</span>(name)  <span class="cm">-- left only</span>
+<span class="fn">RTRIM</span>(name)  <span class="cm">-- right only</span></code></td>
+          <td class="same-cell"><code><span class="fn">TRIM</span>(name)   <span class="cm">-- both sides</span>
+<span class="fn">LTRIM</span>(name)  <span class="cm">-- left only</span>
+<span class="fn">RTRIM</span>(name)  <span class="cm">-- right only</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Removes invisible spaces. Invisible whitespace breaks WHERE clause matches.</td>
+        </tr>
+        <tr>
+          <td>String length</td>
+          <td class="diff-pg"><code><span class="fn">LENGTH</span>(name)
+<span class="cm">-- or CHAR_LENGTH(name)</span></code></td>
+          <td class="diff-my"><code><span class="fn">LENGTH</span>(name)     <span class="cm">-- bytes</span>
+<span class="fn">CHAR_LENGTH</span>(name) <span class="cm">-- characters</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> In MySQL, LENGTH returns byte count (differs for multi-byte chars). Use <strong>CHAR_LENGTH</strong> to count characters.</td>
+        </tr>
+        <tr>
+          <td>Concatenate</td>
+          <td class="diff-pg"><code><span class="fn">CONCAT</span>(first, <span class="str">' '</span>, last)
+<span class="cm">-- or: first || ' ' || last</span></code></td>
+          <td class="diff-my"><code><span class="fn">CONCAT</span>(first, <span class="str">' '</span>, last)
+<span class="cm">-- || operator not supported</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG supports <strong>||</strong> pipe operator for concatenation. MySQL uses only CONCAT().</td>
+        </tr>
+        <tr>
+          <td>Substring</td>
+          <td class="diff-pg"><code><span class="fn">SUBSTRING</span>(name, <span class="num">1</span>, <span class="num">3</span>)
+<span class="cm">-- chars 1 through 3</span></code></td>
+          <td class="diff-my"><code><span class="fn">SUBSTRING</span>(name, <span class="num">1</span>, <span class="num">3</span>)
+<span class="cm">-- same; also LEFT(name, 3)</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Both 1-indexed. MySQL also has <strong>LEFT()</strong> and <strong>RIGHT()</strong> shortcuts.</td>
+        </tr>
+        <tr>
+          <td>Replace</td>
+          <td class="same-cell"><code><span class="fn">REPLACE</span>(name, <span class="str">'a'</span>, <span class="str">'@'</span>)</code></td>
+          <td class="same-cell"><code><span class="fn">REPLACE</span>(name, <span class="str">'a'</span>, <span class="str">'@'</span>)</code></td>
+          <td class="note"><span class="pill pill-same">Same</span> Replaces all occurrences of the second argument with the third.</td>
+        </tr>
+        <tr>
+          <td>Handle NULLs</td>
+          <td class="diff-pg"><code><span class="fn">COALESCE</span>(address, <span class="str">'N/A'</span>)</code></td>
+          <td class="diff-my"><code><span class="fn">COALESCE</span>(address, <span class="str">'N/A'</span>)
+<span class="cm">-- or IFNULL(address, 'N/A')</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> COALESCE works in both. MySQL also has <strong>IFNULL()</strong> as a shorthand for the two-argument case.</td>
+        </tr>
+        <tr>
+          <td>Split a string</td>
+          <td class="diff-pg"><code><span class="fn">SPLIT_PART</span>(<span class="str">'2023M01'</span>, <span class="str">'M'</span>, <span class="num">1</span>)
+<span class="cm">-- returns '2023'</span></code></td>
+          <td class="diff-my"><code><span class="fn">SUBSTRING_INDEX</span>(<span class="str">'2023M01'</span>,<span class="str">'M'</span>,<span class="num">1</span>)
+<span class="cm">-- returns '2023'</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> Different function names. PG: <strong>SPLIT_PART(str, delim, position)</strong>. MySQL: <strong>SUBSTRING_INDEX(str, delim, count)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 10. DATE FUNCTIONS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="date timestamp now current extract month year trunc interval cast">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(251,191,36,0.12)">📅</div>
+    <div>
+      <div class="section-title">Date Functions</div>
+      <div class="section-desc">Working with dates, times and intervals</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Current date / time</td>
+          <td class="diff-pg"><code><span class="fn">CURRENT_DATE</span>        <span class="cm">-- date only</span>
+<span class="fn">CURRENT_TIMESTAMP</span>   <span class="cm">-- date + time</span></code></td>
+          <td class="diff-my"><code><span class="fn">CURDATE</span>()   <span class="cm">-- or CURRENT_DATE</span>
+<span class="fn">NOW</span>()        <span class="cm">-- or CURRENT_TIMESTAMP</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> MySQL commonly uses <strong>NOW()</strong> and <strong>CURDATE()</strong>. PG uses ANSI standard names.</td>
+        </tr>
+        <tr>
+          <td>Date arithmetic</td>
+          <td class="diff-pg"><code>order_date + <span class="kw">INTERVAL</span> <span class="str">'7 days'</span>
+order_date - <span class="kw">INTERVAL</span> <span class="str">'1 month'</span></code></td>
+          <td class="diff-my"><code><span class="fn">DATE_ADD</span>(order_date,
+  <span class="kw">INTERVAL</span> <span class="num">7</span> <span class="kw">DAY</span>)
+<span class="fn">DATE_SUB</span>(order_date,
+  <span class="kw">INTERVAL</span> <span class="num">1</span> <span class="kw">MONTH</span>)</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG adds/subtracts with <strong>+/-</strong> and quoted INTERVAL strings. MySQL uses <strong>DATE_ADD()</strong> and <strong>DATE_SUB()</strong>.</td>
+        </tr>
+        <tr>
+          <td>Days between dates</td>
+          <td class="diff-pg"><code><span class="fn">CURRENT_DATE</span> - order_date
+<span class="cm">-- returns integer (days)</span></code></td>
+          <td class="diff-my"><code><span class="fn">DATEDIFF</span>(<span class="fn">CURDATE</span>(), order_date)
+<span class="cm">-- returns integer (days)</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG subtracts dates directly. MySQL uses <strong>DATEDIFF()</strong>.</td>
+        </tr>
+        <tr>
+          <td>Extract part of date</td>
+          <td class="diff-pg"><code><span class="fn">DATE_PART</span>(<span class="str">'month'</span>, order_date)
+<span class="fn">DATE_PART</span>(<span class="str">'year'</span>,  order_date)</code></td>
+          <td class="diff-my"><code><span class="fn">MONTH</span>(order_date)
+<span class="fn">YEAR</span>(order_date)
+<span class="fn">DAY</span>(order_date)</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG uses DATE_PART with a string. MySQL has dedicated functions for each part.</td>
+        </tr>
+        <tr>
+          <td>Truncate to month</td>
+          <td class="diff-pg"><code><span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, order_date)
+<span class="cm">-- returns first day of month</span></code></td>
+          <td class="diff-my"><code><span class="fn">DATE_FORMAT</span>(order_date,
+  <span class="str">'%Y-%m-01'</span>)
+<span class="cm">-- format as first of month</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG has DATE_TRUNC for clean period rounding. MySQL uses DATE_FORMAT with a pattern string.</td>
+        </tr>
+        <tr>
+          <td>Cast to date type</td>
+          <td class="same-cell"><code><span class="fn">CAST</span>(order_ts <span class="kw">AS DATE</span>)
+<span class="cm">-- or: order_ts::DATE  (PG shorthand)</span></code></td>
+          <td class="same-cell"><code><span class="fn">CAST</span>(order_ts <span class="kw">AS DATE</span>)
+<span class="cm">-- or: DATE(order_ts)</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span> CAST works in both. PG also supports <strong>::</strong> shorthand. MySQL also accepts <strong>DATE()</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 11. COMMENTS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section" data-section="comment syntax">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(52,211,153,0.12)">💬</div>
+    <div>
+      <div class="section-title">Comments & Other Syntax Differences</div>
+      <div class="section-desc">Small but important syntax variations</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Concept</th><th>PostgreSQL</th><th>MySQL</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Single-line comment</td>
+          <td class="same-cell"><code><span class="cm">-- This is a comment</span></code></td>
+          <td class="diff-my"><code><span class="cm">-- This is a comment</span>
+<span class="cm"># This is also a comment</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> MySQL supports <strong>#</strong> as an additional comment style. PG does not.</td>
+        </tr>
+        <tr>
+          <td>Multi-line comment</td>
+          <td class="same-cell"><code><span class="cm">/* This spans
+   multiple lines */</span></code></td>
+          <td class="same-cell"><code><span class="cm">/* This spans
+   multiple lines */</span></code></td>
+          <td class="note"><span class="pill pill-same">Same</span></td>
+        </tr>
+        <tr>
+          <td>String quotes</td>
+          <td class="diff-pg"><code><span class="str">'single quotes only'</span>
+<span class="cm">-- double quotes = identifiers</span></code></td>
+          <td class="diff-my"><code><span class="str">'single quotes'</span> <span class="kw">OR</span>
+<span class="str">"double quotes"</span>
+<span class="cm">-- both work for strings</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG: <strong>single quotes for strings</strong>, double quotes for column/table names. MySQL allows both for strings.</td>
+        </tr>
+        <tr>
+          <td>Stored procedure delimiter</td>
+          <td class="diff-pg"><code><span class="cm">-- No DELIMITER needed</span>
+<span class="kw">CREATE PROCEDURE</span> my_proc()
+<span class="kw">LANGUAGE SQL AS</span> <span class="str">$$
+  SELECT 1;
+$$</span>;</code></td>
+          <td class="diff-my"><code><span class="kw">DELIMITER</span> $$
+<span class="kw">CREATE PROCEDURE</span> my_proc()
+<span class="kw">BEGIN</span>
+  <span class="kw">SELECT</span> <span class="num">1</span>;
+<span class="kw">END</span> $$
+<span class="kw">DELIMITER</span> ;</code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> MySQL requires changing the DELIMITER to <strong>$$</strong> so semicolons inside the procedure don't end it early. PG uses <strong>$$ ... $$</strong> dollar-quoting instead.</td>
+        </tr>
+        <tr>
+          <td>Case sensitivity</td>
+          <td class="diff-pg"><code><span class="cm">-- Keywords: case-insensitive</span>
+<span class="cm">-- Identifiers: lower by default</span>
+<span class="cm">-- "MyTable" ≠ mytable</span></code></td>
+          <td class="diff-my"><code><span class="cm">-- Keywords: case-insensitive</span>
+<span class="cm">-- Table names: depends on OS</span>
+<span class="cm">-- Column names: always insensitive</span></code></td>
+          <td class="note"><span class="pill pill-diff">Diff</span> PG folds unquoted identifiers to lowercase. MySQL table name case depends on the operating system. Both treat SQL keywords case-insensitively.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="no-results">
+  <div style="font-size:32px;margin-bottom:12px">🔍</div>
+  No results found. Try a different keyword.
+</div>
+
+</main>
+
+<button id="top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+<script>
+const search = document.getElementById('search');
+const sections = document.querySelectorAll('.section');
+const noResults = document.getElementById('no-results');
+const resultCount = document.getElementById('result-count');
+const topBtn = document.getElementById('top-btn');
+
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase().trim();
+  let visible = 0;
+  sections.forEach(sec => {
+    const text = sec.textContent.toLowerCase();
+    const attr = (sec.dataset.section || '').toLowerCase();
+    const match = !q || text.includes(q) || attr.includes(q);
+    sec.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  noResults.style.display = (q && visible === 0) ? 'block' : 'none';
+  resultCount.textContent = q ? `${visible} section${visible !== 1 ? 's' : ''}` : '';
+});
+
+window.addEventListener('scroll', () => {
+  topBtn.classList.toggle('visible', window.scrollY > 400);
+});
+</script>
+</body>
+</html>
