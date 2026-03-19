@@ -8,6 +8,12 @@ This folder contains scripts for two databases:
 
 ---
 
+## ⚡ Quick Reference
+
+➡️ **[SQL Cheat Sheet — PostgreSQL vs MySQL](https://sunanda-thompson.github.io/Data-Analytics/Self-Study/Data-Analytics-Tools/SQL/SQL_Cheat_Sheet.html)** — side-by-side syntax comparison for both databases, with live search. Open this when you need a fast answer on syntax differences.
+
+---
+
 ## 🤔 What Is SQL, Really?
 
 Think of a database as a collection of spreadsheets (called *tables*) that are all connected to each other. SQL is how you ask questions about those tables:
@@ -22,6 +28,7 @@ You write instructions, the database runs them, and you get results back.
 ## 📂 Scripts in This Folder
 
 ### PostgreSQL
+
 | File | What It Covers |
 |------|---------------|
 | `01_basics.sql` | Creating tables, inserting data, updating and deleting records |
@@ -34,6 +41,7 @@ You write instructions, the database runs them, and you get results back.
 | `08_date_functions.sql` | Date math, formatting, and time zone handling |
 
 ### MySQL
+
 | File | What It Covers |
 |------|---------------|
 | `01_select_and_filtering.sql` | SELECT, WHERE, LIKE, GROUP BY, ORDER BY, HAVING, LIMIT |
@@ -41,6 +49,12 @@ You write instructions, the database runs them, and you get results back.
 | `03_string_functions.sql` | UPPER, LOWER, TRIM, SUBSTRING, REPLACE, CONCAT |
 | `04_case_subqueries_window.sql` | CASE statements, subqueries, window functions |
 | `05_ctes_temp_stored_procedures_triggers.sql` | CTEs, temp tables, stored procedures, triggers, events |
+
+### Reference
+
+| File | What It Covers |
+|------|---------------|
+| 🔗 [SQL_Cheat_Sheet.html](https://sunanda-thompson.github.io/Data-Analytics/Self-Study/Data-Analytics-Tools/SQL/SQL_Cheat_Sheet.html) | Side-by-side PostgreSQL vs MySQL syntax — all major commands |
 
 ---
 
@@ -65,7 +79,6 @@ You write instructions, the database runs them, and you get results back.
 ## 📋 SQL Query Order of Operations
 
 SQL executes clauses in a specific order. This matters when you're trying to filter results:
-
 ```
 1. FROM        -- which table(s) to pull from
 2. JOIN        -- combine with other tables
