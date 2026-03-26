@@ -1,0 +1,18 @@
+customer_id,customer_name,email,phone_number,purchase_date,product_name,quantity,unit_price,total,region,state,country,sales_rep,sales_rep_id,customer_type,discount,payment_method,status
+C001,john smith,john.smith@email.com,5551234567,1/15/2024,laptop pro 15,2,1299.99,2599.98,north,TX,USA,sarah johnson,REP-04,enterprise,0.15,credit card,completed
+C002,jane doe,jane.doe@gmail.com,5552345678,1/22/2024,wireless mouse,5,29.99,149.95,,CA,USA,mike chen,,smb,0,paypal,completed
+C003,bob o'brien,bob_obrien@company.net,5553456789,1/30/2024,usb-c hub,1,79.99,79.99,south,FL,USA,,REP-07,enterprise,,wire transfer,completed
+C004,maria garcia,maria@garcia.mx,5554567890,2/5/2024,monitor 27inch,0,349.99,0,west,WA,USA,lisa park,REP-02,consumer,0.1,credit card,returned
+C005,wei zhang,wei.zhang@corp.com,5555678901,2/14/2024,keyboard mech,3,120,360,east,NY,USA,,REP-01,smb,0.05,check,pending
+C006,null,,,2/20/2024,webcam hd,1,89.99,89.99,,NULL,USA,tom wilson,REP-03,,0.2,credit card,
+C007,ahmed hassan,ahmed@hassan.ae,5556789012,,standing desk,1,599.99,599.99,south,TX,USA,sarah johnson,REP-04,enterprise,0.1,bank transfer,shipped
+C008,emma wilson,emma@wilson.co.uk,5557890123,3/1/2024,laptop pro 15,1,1299.99,1299.99,west,OR,USA,lisa park,REP-02,consumer,0.1,credit card,completed
+C009,carlos mendez,carlos.mendez@biz.es,5558901234,3/10/2024,monitor 27inch,2,349.99,699.98,east,MA,USA,mike chen,REP-05,smb,0.05,credit card,completed
+C010,priya patel,priya.patel@startup.io,5559012345,3/15/2024,webcam hd,3,89.99,269.97,west,CA,USA,sarah johnson,REP-04,enterprise,0.15,credit card,completed
+C011,liam o'connor,liam.o'connor@mail.ie,5550123456,3/22/2024,usb-c hub,2,79.99,159.98,north,IL,USA,tom wilson,REP-03,consumer,,paypal,processing
+C012,sophie martin,sophie.martin@france.fr,5551239999,,keyboard mech,1,120,120,east,NY,USA,mike chen,REP-05,smb,,credit card,pending
+C014,isabella brown,isabella@brown.com,5553451111,4/10/2024,monitor 27inch,1,349.99,349.99,north,TX,USA,sarah johnson,REP-04,enterprise,0.1,credit card,completed
+C015,,,5554562222,4/15/2024,laptop pro 15,1,1299.99,1299.99,south,FL,USA,,REP-06,smb,0.05,,completed
+C001,john smith,j.smith_personal@hotmail.com,5551234567,4/20/2024,usb-c hub,3,79.99,239.97,north,TX,USA,sarah johnson,REP-04,enterprise,0.15,credit card,completed
+C016,david lee,david.lee@company.com,5555673333,5/1/2024,wireless mouse,2,29.99,59.98,east,CT,USA,mike chen,REP-05,consumer,0,credit card,refunded
+C017,nadia russo,nadia.russo@italy.it,5556784444,5/10/2024,laptop pro 15,1,1299.99,1299.99,west,NV,USA,lisa park,REP-02,consumer,0.1,credit card,completed
