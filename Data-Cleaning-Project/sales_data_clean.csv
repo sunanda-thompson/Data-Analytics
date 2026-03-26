@@ -4,7 +4,7 @@ C002,jane doe,jane.doe@gmail.com,5552345678,1/22/2024,wireless mouse,5,29.99,149
 C003,bob o'brien,bob_obrien@company.net,5553456789,1/30/2024,usb-c hub,1,79.99,79.99,south,FL,USA,,REP-07,enterprise,,wire transfer,completed
 C004,maria garcia,maria@garcia.mx,5554567890,2/5/2024,monitor 27inch,0,349.99,0,west,WA,USA,lisa park,REP-02,consumer,0.1,credit card,returned
 C005,wei zhang,wei.zhang@corp.com,5555678901,2/14/2024,keyboard mech,3,120,360,east,NY,USA,,REP-01,smb,0.05,check,pending
-C006,null,,,2/20/2024,webcam hd,1,89.99,89.99,,NULL,USA,tom wilson,REP-03,,0.2,credit card,
+C006,,,,2/20/2024,webcam hd,1,89.99,89.99,,,USA,tom wilson,REP-03,,0.2,credit card,
 C007,ahmed hassan,ahmed@hassan.ae,5556789012,,standing desk,1,599.99,599.99,south,TX,USA,sarah johnson,REP-04,enterprise,0.1,bank transfer,shipped
 C008,emma wilson,emma@wilson.co.uk,5557890123,3/1/2024,laptop pro 15,1,1299.99,1299.99,west,OR,USA,lisa park,REP-02,consumer,0.1,credit card,completed
 C009,carlos mendez,carlos.mendez@biz.es,5558901234,3/10/2024,monitor 27inch,2,349.99,699.98,east,MA,USA,mike chen,REP-05,smb,0.05,credit card,completed
